@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"compress/gzip"
-	// "github.com/schollz/progressbar/v3"
+	"github.com/schollz/progressbar/v3"
 	"io"
 	"log"
 	"os"
@@ -55,11 +55,14 @@ func Cluster(logger *log.Logger, InputPMTiles string) error {
 	resolver := newResolver(true, false)
 	tmpfile, _ := os.CreateTemp("", "pmtiles")
 
+	bar := progressbar.Default(int64(header.TileEntriesCount))
+
 	CollectEntries(header.RootOffset, header.RootLength, func(e EntryV3) {
 		data, _ := io.ReadAll(io.NewSectionReader(file, int64(header.TileDataOffset + e.Offset), int64(e.Length)))
 		if isNew, newData := resolver.AddTileIsNew(e.TileID, data); isNew {
 			tmpfile.Write(newData)
 		}
+		bar.Add(1)
 	});
 
 	header.Clustered = true
