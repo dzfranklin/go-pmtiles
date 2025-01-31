@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-func Cluster(logger *log.Logger, InputPMTiles string) error {
+func Cluster(logger *log.Logger, InputPMTiles string, deduplicate bool) error {
 	file, _ := os.OpenFile(InputPMTiles, os.O_RDONLY, 0666)
 	defer file.Close()
 
@@ -52,20 +52,24 @@ func Cluster(logger *log.Logger, InputPMTiles string) error {
 		}
 	}
 
-	resolver := newResolver(true, false)
+	resolver := newResolver(deduplicate, false)
 	tmpfile, _ := os.CreateTemp("", "pmtiles")
 
 	bar := progressbar.Default(int64(header.TileEntriesCount))
 
 	CollectEntries(header.RootOffset, header.RootLength, func(e EntryV3) {
 		data, _ := io.ReadAll(io.NewSectionReader(file, int64(header.TileDataOffset + e.Offset), int64(e.Length)))
-		if isNew, newData := resolver.AddTileIsNew(e.TileID, data); isNew {
+		if isNew, newData := resolver.AddTileIsNew(e.TileID, data, e.RunLength); isNew {
 			tmpfile.Write(newData)
 		}
 		bar.Add(1)
 	});
 
 	header.Clustered = true
-	_ = finalize(logger, resolver, header, tmpfile, "output.pmtiles", parsedMetadata)
+	newHeader, err := finalize(logger, resolver, header, tmpfile, "output.pmtiles", parsedMetadata)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("total directory size %d (%f%% of original)\n", newHeader.RootLength + newHeader.LeafDirectoryLength, float64(newHeader.RootLength + newHeader.LeafDirectoryLength)/float64(header.RootLength + header.LeafDirectoryLength)*100)
 	return nil
 }

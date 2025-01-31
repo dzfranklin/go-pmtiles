@@ -180,7 +180,7 @@ func main() {
 			logger.Fatalf("Failed to extract, %v", err)
 		}
 	case "cluster <input>":
-		err := pmtiles.Cluster(logger, cli.Cluster.Input)
+		err := pmtiles.Cluster(logger, cli.Cluster.Input, !cli.Cluster.NoDeduplication)
 		if err != nil {
 			logger.Fatalf("Failed to cluster, %v", err)
 		}
