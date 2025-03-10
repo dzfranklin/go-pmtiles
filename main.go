@@ -33,6 +33,7 @@ var cli struct {
 		Metadata   bool   `help:"Print only the JSON metadata"`
 		HeaderJson bool   `help:"Print a JSON representation of part of the header information"`
 		Tilejson   bool   `help:"Print the TileJSON"`
+		Sizes      bool   `help:"Print information on tile sizes"`
 		PublicURL  string `help:"Public base URL of tile endpoint for TileJSON e.g. https://example.com/tiles"`
 	} `cmd:"" help:"Inspect a local or remote archive"`
 
@@ -129,12 +130,12 @@ func main() {
 
 	switch ctx.Command() {
 	case "show <path>":
-		err := pmtiles.Show(logger, os.Stdout, cli.Show.Bucket, cli.Show.Path, cli.Show.HeaderJson, cli.Show.Metadata, cli.Show.Tilejson, cli.Show.PublicURL, false, 0, 0, 0)
+		err := pmtiles.Show(logger, os.Stdout, cli.Show.Bucket, cli.Show.Path, cli.Show.HeaderJson, cli.Show.Metadata, cli.Show.Tilejson, cli.Show.Sizes, cli.Show.PublicURL, false, 0, 0, 0)
 		if err != nil {
 			logger.Fatalf("Failed to show archive, %v", err)
 		}
 	case "tile <path> <z> <x> <y>":
-		err := pmtiles.Show(logger, os.Stdout, cli.Tile.Bucket, cli.Tile.Path, false, false, false, "", true, cli.Tile.Z, cli.Tile.X, cli.Tile.Y)
+		err := pmtiles.Show(logger, os.Stdout, cli.Tile.Bucket, cli.Tile.Path, false, false, false, false, "", true, cli.Tile.Z, cli.Tile.X, cli.Tile.Y)
 		if err != nil {
 			logger.Fatalf("Failed to show tile, %v", err)
 		}
